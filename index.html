@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>妳的聲音</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+html { height: 100%; }
+body { margin: 0; }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+
+/* Layout: one narrow column like a bedside radio — a glowing "now playing" lamp on top, her collection below, the add form folded under it. */
+:root {
+  --bg: #f5ecee;
+  --surface: #fffafa;
+  --surface-2: #f0e3e6;
+  --ink: #2f2233;
+  --muted: #7b6878;
+  --line: rgba(47, 34, 51, .12);
+  --accent: #c2506a;
+  --accent-ink: #fff7f8;
+  --glow: #f1ae93;
+  --glow-soft: rgba(241, 174, 147, .42);
+  --k-voice: #c2506a;
+  --k-cover: #b8743a;
+  --k-fav: #7a62a3;
+  --danger: #b23a3a;
+  --font-hand: "LXGW WenKai TC", "Kaiti TC", "BiauKai", "STKaiti", serif;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17121e; --surface: #221a2b; --surface-2: #2b2236; --ink: #f4eaef; --muted: #a897ab;
+    --line: rgba(244, 234, 239, .12); --accent: #ee8aa0; --accent-ink: #2a1520; --glow: #f2ad8a;
+    --glow-soft: rgba(238, 138, 160, .20); --k-voice: #ee8aa0; --k-cover: #e3a46b; --k-fav: #b9a2e6; --danger: #f08b8b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17121e; --surface: #221a2b; --surface-2: #2b2236; --ink: #f4eaef; --muted: #a897ab;
+  --line: rgba(244, 234, 239, .12); --accent: #ee8aa0; --accent-ink: #2a1520; --glow: #f2ad8a;
+  --glow-soft: rgba(238, 138, 160, .20); --k-voice: #ee8aa0; --k-cover: #e3a46b; --k-fav: #b9a2e6; --danger: #f08b8b;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  background-image: radial-gradient(ellipse 70% 420px at 50% -60px, var(--glow-soft), transparent 70%);
+  background-repeat: no-repeat;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.65;
+  min-height: 100%;
+}
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+/* header */
+.top { display: flex; flex-direction: column; gap: 6px; }
+.eyebrow { margin: 0; font-size: 12px; letter-spacing: .18em; color: var(--muted); }
+h1 {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-weight: 700;
+  font-size: clamp(40px, 9vw, 60px);
+  line-height: 1.1;
+  letter-spacing: .04em;
+  text-wrap: balance;
+}
+.lede { margin: 4px 0 0; color: var(--muted); max-width: 34em; text-wrap: pretty; }
+
+/* player */
+.player {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 28px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: 0 24px 60px -36px var(--glow);
+}
+.lamp { position: relative; width: 220px; height: 220px; max-width: 100%; justify-self: center; }
+.lamp canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.big {
+  position: absolute; left: 50%; top: 50%;
+  width: 96px; height: 96px; margin: -48px 0 0 -48px;
+  border-radius: 50%; border: 0;
+  background: var(--accent); color: var(--accent-ink);
+  display: grid; place-items: center;
+  box-shadow: 0 10px 30px -8px var(--accent);
+  transition: transform .2s ease;
+}
+.big:hover { transform: scale(1.04); }
+.big:active { transform: scale(.97); }
+.big svg { width: 38px; height: 38px; }
+.np { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.np-kind { margin: 0; font-size: 12px; letter-spacing: .14em; color: var(--muted); }
+.np-title {
+  margin: 0; font-family: var(--font-hand); font-weight: 700;
+  font-size: 26px; line-height: 1.3; text-wrap: balance; overflow-wrap: anywhere;
+}
+.np-note {
+  margin: 0; font-family: var(--font-hand); font-size: 17px; color: var(--muted);
+  overflow-wrap: anywhere; white-space: pre-line;
+}
+.seek { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.seek span { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.seek input { width: 100%; accent-color: var(--accent); }
+.ctrls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.icon-btn {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid var(--line); background: transparent;
+  display: grid; place-items: center;
+}
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn:hover { background: var(--surface-2); }
+.icon-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.shuffle-btn {
+  margin-left: auto;
+  border: 1px solid var(--line); background: var(--surface-2);
+  border-radius: 999px; padding: 8px 16px;
+  display: inline-flex; gap: 8px; align-items: center; font-size: 14px;
+}
+.shuffle-btn svg { width: 16px; height: 16px; }
+
+/* library */
+.library { display: flex; flex-direction: column; gap: 16px; }
+.lib-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.lib-head h2 { margin: 0; font-family: var(--font-hand); font-size: 26px; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.filters button {
+  border: 1px solid var(--line); background: transparent;
+  border-radius: 999px; padding: 5px 13px; font-size: 13px; color: var(--muted);
+}
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: transparent; }
+.filters .n { font-family: var(--font-mono); font-size: 11px; margin-left: 4px; opacity: .75; }
+.add-btn {
+  border: 0; background: var(--accent); color: var(--accent-ink);
+  border-radius: 999px; padding: 9px 18px; font-weight: 500;
+}
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.item {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 14px; align-items: start;
+  padding: 16px 4px; border-top: 1px solid var(--line);
+}
+.item:last-child { border-bottom: 1px solid var(--line); }
+.item.playing .item-title { color: var(--accent); }
+.item-play {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--surface);
+  display: grid; place-items: center;
+}
+.item-play svg { width: 16px; height: 16px; }
+.item.playing .item-play { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.item-link-icon { color: var(--muted); }
+.item-body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.item-title { margin: 0; font-weight: 500; font-size: 16px; overflow-wrap: anywhere; }
+.meta { margin: 0; font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.meta .dur { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.chip { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.chip.voice { color: var(--k-voice); }
+.chip.cover { color: var(--k-cover); }
+.chip.fav { color: var(--k-fav); }
+.note { margin: 4px 0 0; font-family: var(--font-hand); font-size: 16px; overflow-wrap: anywhere; white-space: pre-line; }
+.ext { font-size: 13px; color: var(--accent); text-decoration: none; overflow-wrap: anywhere; }
+.ext:hover { text-decoration: underline; }
+.item-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.del { border: 0; background: transparent; color: var(--muted); padding: 6px; border-radius: 8px; }
+.del svg { width: 16px; height: 16px; display: block; }
+.del:hover { color: var(--danger); background: var(--surface-2); }
+.confirm { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; font-size: 13px; }
+.confirm button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 3px 10px; }
+.confirm .yes { color: var(--danger); border-color: var(--danger); }
+
+.empty {
+  border: 1px dashed var(--line); border-radius: 22px; padding: 32px 24px;
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+}
+.empty h3 { margin: 0; font-family: var(--font-hand); font-size: 22px; }
+.empty p { margin: 0; color: var(--muted); max-width: 32em; }
+
+/* add form */
+.add {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 24px;
+  padding: 22px; display: flex; flex-direction: column; gap: 16px;
+}
+.add h2 { margin: 0; font-family: var(--font-hand); font-size: 24px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field > label, .field > .lbl { font-size: 13px; color: var(--muted); letter-spacing: .04em; }
+.kinds { display: flex; gap: 8px; flex-wrap: wrap; border: 0; padding: 0; margin: 0; }
+.kinds label {
+  border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer;
+  display: inline-flex; gap: 6px; align-items: center; font-size: 14px;
+}
+.kinds input { accent-color: var(--accent); margin: 0; }
+.kinds label:has(input:checked) { border-color: var(--accent); background: var(--surface-2); }
+.text-in, textarea {
+  width: 100%; border: 1px solid var(--line); background: var(--bg);
+  border-radius: 12px; padding: 10px 12px;
+}
+textarea { min-height: 84px; resize: vertical; font-family: var(--font-hand); font-size: 17px; }
+.drop {
+  border: 1.5px dashed var(--line); border-radius: 16px; padding: 18px;
+  display: flex; flex-direction: column; gap: 6px; align-items: flex-start; background: var(--bg);
+}
+.drop.over { border-color: var(--accent); }
+.drop p { margin: 0; color: var(--muted); font-size: 13px; }
+.drop .fname { color: var(--ink); font-size: 14px; overflow-wrap: anywhere; }
+.pick { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px; font-size: 14px; }
+.form-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.submit { border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 10px 22px; font-weight: 500; }
+.submit:disabled { opacity: .5; cursor: progress; }
+.ghost { border: 0; background: transparent; color: var(--muted); padding: 10px 8px; }
+.msg { margin: 0; font-size: 13px; color: var(--muted); }
+.msg.err { color: var(--danger); }
+.hint { margin: 0; font-size: 12.5px; color: var(--muted); }
+
+footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 16px; }
+footer p { margin: 0; max-width: 40em; }
+
+@media (max-width: 600px) {
+  .wrap { padding-block: 28px 44px; gap: 28px; }
+  .player { grid-template-columns: minmax(0, 1fr); padding: 20px; gap: 18px; }
+  .lamp { width: 200px; height: 200px; }
+  .np { text-align: left; }
+  .item { grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; }
+  .item-play { width: 40px; height: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .big { transition: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">累了的時候</p>
+    <h1>妳的聲音</h1>
+    <p class="lede">她的錄音、她唱的歌、我們喜歡的歌，都收在這裡。兩個人都能放進來，按一下中間的按鈕，就能聽見彼此。</p>
+  </header>
+
+  <section class="add" id="lock" hidden aria-label="輸入通關密語">
+    <h2>輸入通關密語</h2>
+    <p class="hint">用完整的邀請連結打開會自動填好，之後這台裝置就不用再輸入。</p>
+    <form id="lockForm" class="form-actions">
+      <input class="text-in" id="keyIn" autocomplete="off" aria-label="通關密語" style="flex:1;min-width:0">
+      <button class="submit" type="submit">進入</button>
+      <p class="msg" id="lockMsg" role="status"></p>
+    </form>
+  </section>
+
+  <section class="player" aria-label="正在播放">
+    <div class="lamp">
+      <canvas id="ring" aria-hidden="true"></canvas>
+      <button class="big" id="bigplay" aria-label="隨機聽一段她的聲音">
+        <svg id="bigIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+      </button>
+    </div>
+    <div class="np">
+      <p class="np-kind" id="npKind">還沒播放</p>
+      <h2 class="np-title" id="npTitle">按中間的按鈕，隨機聽一段她的聲音</h2>
+      <p class="np-note" id="npNote" hidden></p>
+      <div class="seek">
+        <span id="tcur">0:00</span>
+        <input type="range" id="seek" min="0" max="1000" value="0" step="1" aria-label="播放進度">
+        <span id="tdur">0:00</span>
+      </div>
+      <div class="ctrls">
+        <button class="icon-btn" id="prev" aria-label="上一段"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 6.2v11.6a1 1 0 0 1-1.52.85L9.5 13.2a1.4 1.4 0 0 1 0-2.4l8.98-5.45A1 1 0 0 1 20 6.2z"/></svg></button>
+        <button class="icon-btn" id="toggle" aria-label="播放"><svg id="toggleIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></button>
+        <button class="icon-btn" id="next" aria-label="下一段"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 6.2v11.6a1 1 0 0 0 1.52.85l8.98-5.45a1.4 1.4 0 0 0 0-2.4L5.52 5.35A1 1 0 0 0 4 6.2z"/></svg></button>
+        <button class="icon-btn" id="repeat" aria-pressed="false" aria-label="單曲重複"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg></button>
+        <button class="shuffle-btn" id="shuffle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>換一段</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="library" aria-label="收藏">
+    <div class="lib-head">
+      <h2>我們的聲音</h2>
+      <div class="filters" id="filters">
+        <button data-f="all" aria-pressed="true">全部<span class="n" id="n-all">0</span></button>
+        <button data-f="voice" aria-pressed="false">錄音<span class="n" id="n-voice">0</span></button>
+        <button data-f="cover" aria-pressed="false">她唱的<span class="n" id="n-cover">0</span></button>
+        <button data-f="fav" aria-pressed="false">喜歡的歌<span class="n" id="n-fav">0</span></button>
+      </div>
+    </div>
+    <ul class="list" id="list"></ul>
+    <div class="empty" id="empty">
+      <h3 id="emptyTitle">正在打開收藏…</h3>
+      <p id="emptyText">稍等一下，正在讀取她放進來的聲音。</p>
+    </div>
+    <div><button class="add-btn" id="openAdd" hidden>＋ 放一段聲音進來</button></div>
+  </section>
+
+  <section class="add" id="addPanel" hidden aria-label="放一段聲音">
+    <h2>放一段聲音進來</h2>
+    <form id="addForm" novalidate>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="field">
+          <span class="lbl" id="kindLbl">這是什麼</span>
+          <fieldset class="kinds" aria-labelledby="kindLbl">
+            <label><input type="radio" name="kind" id="k-voice" value="voice" checked>錄音</label>
+            <label><input type="radio" name="kind" id="k-cover" value="cover">她唱的歌</label>
+            <label><input type="radio" name="kind" id="k-fav" value="fav">喜歡的歌</label>
+          </fieldset>
+        </div>
+        <div class="field" id="fileField">
+          <span class="lbl">錄音檔</span>
+          <div class="drop" id="drop">
+            <p class="fname" id="fname">還沒選檔案</p>
+            <p>可以拖檔案進來。支援 m4a、mp3、wav、aac、webm 等常見格式，單檔 50MB 以內。iPhone 語音備忘錄可以先「分享 → 儲存到檔案」再選。</p>
+            <button type="button" class="pick" id="pick">選擇檔案</button>
+            <input type="file" id="file" accept="audio/*,video/mp4,video/webm,.m4a,.mp3,.wav,.aac,.flac,.ogg,.opus,.webm,.mp4" hidden>
+          </div>
+        </div>
+        <div class="field">
+          <label for="who">署名</label>
+          <input class="text-in" id="who" maxlength="20" placeholder="例如：小貝">
+        </div>
+        <div class="field">
+          <label for="title">標題</label>
+          <input class="text-in" id="title" maxlength="80" placeholder="例如：晚安，今天辛苦了">
+        </div>
+        <div class="field">
+          <label for="note">想說的話（選填）</label>
+          <textarea id="note" maxlength="500" placeholder="寫給對方的一句話"></textarea>
+        </div>
+        <div class="field">
+          <label for="link">歌曲連結（選填，YouTube、Spotify、StreetVoice 都可以）</label>
+          <input class="text-in" id="link" type="url" inputmode="url" placeholder="https://">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="submit" id="submit">放進來</button>
+          <button type="button" class="ghost" id="cancelAdd">取消</button>
+          <p class="msg" id="formMsg" role="status"></p>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <footer>
+    <p>拿到邀請連結的人才進得來，請不要把連結轉給別人。兩個人打開看到的是同一份收藏。</p>
+  </footer>
+</div>
+
+<audio id="audio" preload="metadata"></audio>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const KIND = {
+    voice: { label: "錄音", chip: "錄音" },
+    cover: { label: "她唱的歌", chip: "她唱的" },
+    fav:   { label: "喜歡的歌", chip: "喜歡的歌" },
+  };
+  const ICON_PLAY = '<path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/>';
+  const ICON_PAUSE = '<rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/>';
+  const ICON_LINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+  const ICON_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>';
+  const MAX_BYTES = 50 * 1024 * 1024;
+  const BUCKET = "voices";
+  const MIME_BY_EXT = { m4a: "audio/mp4", mp4: "audio/mp4", aac: "audio/aac", mp3: "audio/mpeg", wav: "audio/wav", ogg: "audio/ogg", opus: "audio/ogg", flac: "audio/flac", webm: "audio/webm", mov: "video/quicktime" };
+
+  const store = {
+    get: (k) => { try { return localStorage.getItem(k) || ""; } catch { return ""; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
+    del: (k) => { try { localStorage.removeItem(k); } catch {} },
+  };
+
+  let sb = null;
+  let items = [];
+  let filter = "all";
+  let current = null;
+  let repeat = false;
+  let confirmingId = null;
+
+  const audio = $("#audio");
+
+  // ---------- helpers ----------
+  const fmtTime = (s) => {
+    if (!isFinite(s) || s < 0) s = 0;
+    s = Math.round(s);
+    const m = Math.floor(s / 60), r = s % 60;
+    return m + ":" + String(r).padStart(2, "0");
+  };
+  const fmtDate = (iso) => {
+    const d = new Date(iso), now = new Date();
+    const md = (d.getMonth() + 1) + "月" + d.getDate() + "日";
+    return d.getFullYear() === now.getFullYear() ? md : d.getFullYear() + "年" + md;
+  };
+  const safeLink = (u) => {
+    try { const x = new URL(String(u)); return x.protocol === "https:" || x.protocol === "http:" ? x.href : null; }
+    catch { return null; }
+  };
+  const playable = (it) => !!it.file_path;
+  const srcOf = (it) => sb.storage.from(BUCKET).getPublicUrl(it.file_path).data.publicUrl;
+  const visible = () => filter === "all" ? items : items.filter((i) => i.kind === filter);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+  // ---------- player ----------
+  function setPlayIcons() {
+    const playing = !audio.paused && !audio.ended;
+    $("#bigIcon").innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+    $("#toggleIcon").innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+    $("#toggle").setAttribute("aria-label", playing ? "暫停" : "播放");
+    $("#bigplay").setAttribute("aria-label", current ? (playing ? "暫停" : "播放") : "隨機聽一段她的聲音");
+  }
+
+  function showNowPlaying() {
+    if (!current) return;
+    $("#npKind").textContent = (KIND[current.kind] || KIND.voice).label;
+    $("#npTitle").textContent = current.title || "沒有標題的聲音";
+    const n = $("#npNote");
+    n.textContent = current.note || "";
+    n.hidden = !current.note;
+    try {
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({ title: current.title || "妳的聲音", artist: current.added_by || "", album: "妳的聲音" });
+      }
+    } catch {}
+    renderList();
+  }
+
+  async function play(it) {
+    if (!it || !playable(it)) return;
+    if (!current || current.id !== it.id) {
+      current = it;
+      audio.src = srcOf(it);
+      showNowPlaying();
+    }
+    try { await audio.play(); }
+    catch (e) {
+      if (e && e.name === "NotAllowedError") return;
+      $("#npKind").textContent = "這段沒辦法在這個瀏覽器播放";
+    }
+  }
+
+  function queue() {
+    const q = visible().filter(playable);
+    return q.length ? q : items.filter(playable);
+  }
+  function step(dir) {
+    const q = queue();
+    if (!q.length) return;
+    const i = current ? q.findIndex((x) => x.id === current.id) : -1;
+    play(q[(i + dir + q.length) % q.length]);
+  }
+  function shuffle() {
+    const pool = items.filter((i) => playable(i) && i.kind !== "fav");
+    const q = pool.length ? pool : items.filter(playable);
+    if (!q.length) {
+      $("#npKind").textContent = "還沒有可以播放的聲音";
+      $("#npTitle").textContent = "先放一段錄音進來吧";
+      return;
+    }
+    let pick = q[Math.floor(Math.random() * q.length)];
+    if (q.length > 1 && current && pick.id === current.id) pick = q[(q.indexOf(pick) + 1) % q.length];
+    play(pick);
+  }
+  function toggle() {
+    if (!current) { shuffle(); return; }
+    if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+  }
+
+  $("#bigplay").addEventListener("click", toggle);
+  $("#toggle").addEventListener("click", toggle);
+  $("#prev").addEventListener("click", () => step(-1));
+  $("#next").addEventListener("click", () => step(1));
+  $("#shuffle").addEventListener("click", shuffle);
+  $("#repeat").addEventListener("click", () => {
+    repeat = !repeat;
+    $("#repeat").setAttribute("aria-pressed", String(repeat));
+  });
+
+  let seeking = false;
+  const seek = $("#seek");
+  seek.addEventListener("input", () => {
+    seeking = true;
+    if (isFinite(audio.duration)) $("#tcur").textContent = fmtTime(seek.value / 1000 * audio.duration);
+  });
+  seek.addEventListener("change", () => {
+    if (isFinite(audio.duration)) audio.currentTime = seek.value / 1000 * audio.duration;
+    seeking = false;
+  });
+  audio.addEventListener("timeupdate", () => {
+    if (seeking) return;
+    const d = audio.duration;
+    $("#tcur").textContent = fmtTime(audio.currentTime);
+    seek.value = isFinite(d) && d > 0 ? Math.round(audio.currentTime / d * 1000) : 0;
+  });
+  audio.addEventListener("loadedmetadata", () => {
+    $("#tdur").textContent = fmtTime(isFinite(audio.duration) ? audio.duration : (current && current.duration) || 0);
+  });
+  audio.addEventListener("play", () => { setPlayIcons(); renderList(); });
+  audio.addEventListener("pause", () => { setPlayIcons(); renderList(); });
+  audio.addEventListener("ended", () => {
+    if (repeat) { audio.currentTime = 0; audio.play().catch(() => {}); return; }
+    const q = queue();
+    const i = current ? q.findIndex((x) => x.id === current.id) : -1;
+    if (i >= 0 && i < q.length - 1) play(q[i + 1]); else setPlayIcons();
+  });
+  audio.addEventListener("error", () => {
+    if (current) $("#npKind").textContent = "這段沒辦法在這個瀏覽器播放";
+  });
+  try {
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.setActionHandler("play", () => audio.play().catch(() => {}));
+      navigator.mediaSession.setActionHandler("pause", () => audio.pause());
+      navigator.mediaSession.setActionHandler("previoustrack", () => step(-1));
+      navigator.mediaSession.setActionHandler("nexttrack", () => step(1));
+    }
+  } catch {}
+
+  // ---------- lamp animation ----------
+  const canvas = $("#ring");
+  const ctx = canvas.getContext("2d");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
+  let colors = { a: "#c2506a", g: "#f1ae93" };
+  const readColors = () => {
+    const cs = getComputedStyle(document.documentElement);
+    colors = { a: cs.getPropertyValue("--accent").trim() || colors.a, g: cs.getPropertyValue("--glow").trim() || colors.g };
+  };
+  function sizeCanvas() {
+    const r = canvas.getBoundingClientRect();
+    canvas.width = Math.max(1, Math.round(r.width * dpr()));
+    canvas.height = Math.max(1, Math.round(r.height * dpr()));
+    ctx.setTransform(dpr(), 0, 0, dpr(), 0, 0);
+  }
+  let frame = 0;
+  function draw(t) {
+    const w = canvas.width / dpr(), h = canvas.height / dpr();
+    const cx = w / 2, cy = h / 2, base = 52, span = Math.min(w, h) / 2 - base - 2;
+    ctx.clearRect(0, 0, w, h);
+    const playing = !audio.paused && !audio.ended;
+    const sec = t / 1000;
+    const breathe = reduce.matches ? 0.5 : (Math.sin(sec * (playing ? 1.6 : 0.7)) + 1) / 2;
+    const halo = ctx.createRadialGradient(cx, cy, base * 0.6, cx, cy, base + span * (0.55 + breathe * 0.25));
+    halo.addColorStop(0, colors.g + "66");
+    halo.addColorStop(1, colors.g + "00");
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(cx, cy, base + span, 0, Math.PI * 2); ctx.fill();
+    const rings = playing ? 4 : 2;
+    for (let i = 0; i < rings; i++) {
+      const phase = reduce.matches ? (i + 1) / (rings + 1) : ((sec * (playing ? 0.32 : 0.12)) + i / rings) % 1;
+      ctx.strokeStyle = colors.a;
+      ctx.globalAlpha = (1 - phase) * (playing ? 0.5 : 0.22);
+      ctx.lineWidth = playing ? 1.6 : 1.2;
+      ctx.beginPath(); ctx.arc(cx, cy, base + 6 + phase * span, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function loop(t) {
+    if (frame++ % 60 === 0) readColors();
+    draw(t);
+    if (!reduce.matches) requestAnimationFrame(loop);
+  }
+  sizeCanvas(); readColors();
+  window.addEventListener("resize", () => { sizeCanvas(); if (reduce.matches) draw(0); });
+  audio.addEventListener("play", () => { if (reduce.matches) draw(0); });
+  audio.addEventListener("pause", () => { if (reduce.matches) draw(0); });
+  requestAnimationFrame(loop);
+
+  // ---------- list ----------
+  document.querySelectorAll("#filters button").forEach((b) => {
+    b.addEventListener("click", () => {
+      filter = b.dataset.f;
+      document.querySelectorAll("#filters button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      renderList();
+    });
+  });
+
+  function setEmpty(title, text) {
+    $("#emptyTitle").textContent = title;
+    $("#emptyText").textContent = text;
+    $("#empty").hidden = false;
+  }
+
+  function renderList() {
+    const counts = { all: items.length, voice: 0, cover: 0, fav: 0 };
+    items.forEach((i) => { if (counts[i.kind] != null) counts[i.kind]++; });
+    Object.keys(counts).forEach((k) => { $("#n-" + k).textContent = counts[k]; });
+
+    const list = $("#list");
+    list.textContent = "";
+    if (!sb) return;
+    const v = visible();
+    $("#empty").hidden = v.length > 0;
+    if (!v.length) {
+      if (!items.length) setEmpty("這裡還很安靜", "放一段錄音、一首她唱的歌，或一首喜歡的歌進來。放進來之後，你們兩個打開都會看到。");
+      else setEmpty("這一類還沒有東西", "換一個分類看看，或放一段新的進來。");
+    }
+    const playing = !audio.paused && !audio.ended;
+    for (const it of v) {
+      const li = el("li", "item");
+      const isCur = current && current.id === it.id;
+      if (isCur) li.classList.add("playing");
+
+      if (playable(it)) {
+        const b = el("button", "item-play");
+        b.setAttribute("aria-label", (isCur && playing ? "暫停 " : "播放 ") + (it.title || ""));
+        b.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor">' + (isCur && playing ? ICON_PAUSE : ICON_PLAY) + "</svg>";
+        b.addEventListener("click", () => { if (isCur) toggle(); else play(it); });
+        li.append(b);
+      } else {
+        const s = el("span", "item-play item-link-icon");
+        s.setAttribute("aria-hidden", "true");
+        s.innerHTML = ICON_LINK;
+        li.append(s);
+      }
+
+      const body = el("div", "item-body");
+      body.append(el("p", "item-title", it.title || "沒有標題的聲音"));
+      const meta = el("p", "meta");
+      const k = KIND[it.kind] ? it.kind : "voice";
+      meta.append(el("span", "chip " + k, KIND[k].chip));
+      if (it.created_at) meta.append(el("span", null, fmtDate(it.created_at)));
+      if (it.duration) meta.append(el("span", "dur", fmtTime(it.duration)));
+      if (it.added_by) meta.append(el("span", null, "由 " + it.added_by + " 放的"));
+      body.append(meta);
+      if (it.note) body.append(el("p", "note", it.note));
+      const link = safeLink(it.link);
+      if (link) {
+        const a = el("a", "ext", "打開歌曲連結 ↗");
+        a.href = link; a.target = "_blank"; a.rel = "noopener noreferrer";
+        body.append(a);
+      }
+      li.append(body);
+
+      const side = el("div", "item-side");
+      if (confirmingId === it.id) {
+        const c = el("div", "confirm");
+        c.append(el("span", null, "刪掉這段？"));
+        const yes = el("button", "yes", "刪除");
+        const no = el("button", null, "留著");
+        yes.addEventListener("click", () => removeItem(it));
+        no.addEventListener("click", () => { confirmingId = null; renderList(); });
+        c.append(yes, no);
+        side.append(c);
+      } else {
+        const d = el("button", "del");
+        d.setAttribute("aria-label", "刪除 " + (it.title || ""));
+        d.innerHTML = ICON_TRASH;
+        d.addEventListener("click", () => { confirmingId = it.id; renderList(); });
+        side.append(d);
+      }
+      li.append(side);
+      list.append(li);
+    }
+  }
+
+  async function load() {
+    const { data, error } = await sb.from("items").select("*").order("created_at", { ascending: false }).limit(500);
+    if (error) { setEmpty("收藏暫時讀不到", "網路可能不穩，重新整理頁面再試一次。"); return; }
+    items = data || [];
+    if (current) { const fresh = items.find((i) => i.id === current.id); if (fresh) current = fresh; }
+    renderList();
+  }
+
+  async function removeItem(it) {
+    confirmingId = null;
+    const { error } = await sb.from("items").delete().eq("id", it.id);
+    if (error) { setEmpty("刪除失敗了", "請稍後再試一次。"); return; }
+    if (current && current.id === it.id) audio.pause();
+    await load();
+  }
+
+  // ---------- add form ----------
+  const addPanel = $("#addPanel");
+  const fileInput = $("#file");
+  let chosen = null;
+  $("#who").value = store.get("hv-who");
+
+  $("#openAdd").addEventListener("click", () => {
+    addPanel.hidden = false;
+    $("#openAdd").hidden = true;
+    addPanel.scrollIntoView({ behavior: reduce.matches ? "auto" : "smooth", block: "start" });
+  });
+  $("#cancelAdd").addEventListener("click", () => { resetForm(); addPanel.hidden = true; $("#openAdd").hidden = false; });
+  $("#pick").addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => choose(fileInput.files && fileInput.files[0]));
+  const drop = $("#drop");
+  ["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", (e) => { const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) choose(f); });
+
+  function choose(f) {
+    chosen = f || null;
+    $("#fname").textContent = chosen ? chosen.name + "（" + (chosen.size / 1048576).toFixed(1) + " MB）" : "還沒選檔案";
+    if (chosen && !$("#title").value.trim()) $("#title").value = chosen.name.replace(/\.[^.]+$/, "").slice(0, 80);
+  }
+  function resetForm() {
+    const who = $("#who").value;
+    $("#addForm").reset();
+    $("#who").value = who;
+    chosen = null; fileInput.value = "";
+    $("#fname").textContent = "還沒選檔案";
+    setMsg("");
+  }
+  function setMsg(t, err) { const m = $("#formMsg"); m.textContent = t; m.classList.toggle("err", !!err); }
+
+  function probeDuration(blob) {
+    return new Promise((res) => {
+      const a = document.createElement("audio");
+      const url = URL.createObjectURL(blob);
+      const done = (v) => { URL.revokeObjectURL(url); res(v); };
+      const timer = setTimeout(() => done(0), 6000);
+      a.preload = "metadata";
+      a.onloadedmetadata = () => { clearTimeout(timer); done(isFinite(a.duration) ? a.duration : 0); };
+      a.onerror = () => { clearTimeout(timer); done(0); };
+      a.src = url;
+    });
+  }
+  const newId = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+
+  $("#addForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!sb) return;
+    const kind = (document.querySelector('input[name="kind"]:checked') || {}).value || "voice";
+    const who = $("#who").value.trim().slice(0, 20);
+    const title = $("#title").value.trim();
+    const note = $("#note").value.trim();
+    const rawLink = $("#link").value.trim();
+    const link = rawLink ? safeLink(rawLink) : null;
+    if (rawLink && !link) { setMsg("連結看起來不太對，請貼上 https:// 開頭的網址。", true); return; }
+    if (!chosen && !link) { setMsg("請選一個錄音檔，或貼上歌曲連結。", true); return; }
+    if (chosen && chosen.size > MAX_BYTES) { setMsg("檔案超過 50MB，請剪短一點再試。", true); return; }
+    store.set("hv-who", who);
+
+    const btn = $("#submit");
+    btn.disabled = true;
+    try {
+      let file_path = "", duration = 0;
+      if (chosen) {
+        const ext = (chosen.name.match(/\.([a-z0-9]+)$/i) || [, "m4a"])[1].toLowerCase();
+        const type = MIME_BY_EXT[ext] || (chosen.type && /^(audio|video)\//.test(chosen.type) ? chosen.type : "audio/mp4");
+        duration = Math.round(await probeDuration(chosen));
+        setMsg("上傳中…");
+        file_path = newId() + "." + ext;
+        const { error } = await sb.storage.from(BUCKET).upload(file_path, chosen, { contentType: type, upsert: false });
+        if (error) { setMsg("上傳沒有成功，請再試一次。（" + (error.message || "未知錯誤") + "）", true); return; }
+      }
+      const row = {
+        kind, title: (title || (chosen ? chosen.name.replace(/\.[^.]+$/, "") : "一首歌")).slice(0, 80),
+        note: note.slice(0, 500), link: link || "", file_path, duration, added_by: who,
+      };
+      const { error } = await sb.from("items").insert(row);
+      if (error) { setMsg("存不進去，請再試一次。（" + (error.message || "未知錯誤") + "）", true); return; }
+      resetForm();
+      setMsg("放好了 ♡");
+      addPanel.hidden = true; $("#openAdd").hidden = false;
+      filter = "all";
+      document.querySelectorAll("#filters button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.f === "all")));
+      await load();
+    } catch (err) {
+      setMsg("出了點問題，請再試一次。", true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ---------- passphrase ----------
+  function readKeyFromHash() {
+    const m = location.hash.match(/key=([^&]+)/);
+    if (!m) return "";
+    try { history.replaceState(null, "", location.pathname + location.search); } catch {}
+    try { return decodeURIComponent(m[1]); } catch { return m[1]; }
+  }
+
+  async function connect(key) {
+    const cfg = window.HV_CONFIG || {};
+    sb = window.supabase.createClient(cfg.url, cfg.anonKey, {
+      auth: { persistSession: false },
+      global: { headers: { "x-room-key": key } },
+    });
+    const { data, error } = await sb.rpc("check_key");
+    if (error || data !== true) { sb = null; return false; }
+    return true;
+  }
+
+  async function unlock(key) {
+    setEmpty("正在打開收藏…", "稍等一下。");
+    const ok = await connect(key);
+    if (!ok) {
+      store.del("hv-key");
+      $("#lock").hidden = false;
+      $("#lockMsg").textContent = key ? "通關密語不對，請再確認一次。" : "";
+      setEmpty("需要通關密語", "在上面輸入通關密語，或用完整的邀請連結打開。");
+      return;
+    }
+    store.set("hv-key", key);
+    $("#lock").hidden = true;
+    $("#openAdd").hidden = false;
+    await load();
+  }
+
+  $("#lockForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const k = $("#keyIn").value.trim();
+    if (k) unlock(k);
+  });
+
+  async function boot() {
+    const cfg = window.HV_CONFIG || {};
+    if (!window.supabase || !cfg.url || !cfg.anonKey || /填入/.test(cfg.url + cfg.anonKey)) {
+      setEmpty("網站還沒設定好", "請在 config.js 填入 Supabase 的專案網址和公開金鑰。");
+      return;
+    }
+    const key = readKeyFromHash() || store.get("hv-key");
+    if (!key) {
+      $("#lock").hidden = false;
+      setEmpty("需要通關密語", "在上面輸入通關密語，或用完整的邀請連結打開。");
+      return;
+    }
+    await unlock(key);
+  }
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && sb) load(); });
+  setInterval(() => { if (!document.hidden && sb) load(); }, 60000);
+
+  setPlayIcons();
+  boot();
+})();
+</script>
+</body>
+</html>
